@@ -6,8 +6,8 @@ use Getopt::Long;
 
 my $token      = 'TODO: ';
 my $format     = '{LINE_NUM}. {LINE}';
-my $file       = 0;     # default: false  
-my $incl_token = 1;     # default: true
+my $file       = '';    # default: false  
+my $incl_token = 0;     # default: false
 # TODO: Add unbreak-lines option.
 # my $rem_breaks = 0;     # default: false
 
@@ -18,57 +18,71 @@ GetOptions(
     'include-token' => \$incl_token,
 ) or die "Error in command line arguments\n";
 
-my $todos = [];
-my $todo_index = 0;
+my $todos = getTodosFromFile($file);
+printTodos($todos);
 
-open(my $fh, "<", $file)
-    or die "Cannot open file '$file': $!";
+sub getTodosFromFile {
+    my $filename = shift;
 
-my $prev_pretext;
-my $line_num = 0;
-while (my $line = <$fh>) {
-    $line_num++;
-    chomp $line;
+    my $todos = [];
+    my $todo_index = 0;
 
-    # TODO: If we find the token again, make it a new todo.
-    my ($pretext, $text) = $line =~ m/(^.*)$token(.*$)/i;
-    $prev_pretext = $pretext
-        if $pretext;
+    my $prev_pretext;
+    my $line_num = 0;
 
-    # Skip this line unless $prev_pretext is defined. $prev_pretext not being
-    # defined indicates that no todo was found on this line.
-    next unless length($prev_pretext);
+    open(my $fh, "<", $filename)
+        or die "Cannot open file '$filename': $!";
 
-    ($text) = $line =~ m/^$prev_pretext(.*$)/i
-        unless $text;
+    while (my $line = <$fh>) {
+        $line_num++;
+        chomp $line;
 
-    # If no todo text is found, reset $prev_pretext and increment $todo_index.
-    if (!$text) {
-        $prev_pretext = q{};
-        $todo_index++;
-        next;
+        # TODO: If we find the token again, make it a new todo.
+        my ($pretext, $text) = $line =~ m/(^.*)$token(.*$)/i;
+        $prev_pretext = $pretext
+            if $pretext;
+
+        # Skip this line unless $prev_pretext is defined. $prev_pretext not being
+        # defined indicates that no todo was found on this line.
+        next unless length($prev_pretext);
+
+        ($text) = $line =~ m/^$prev_pretext(.*$)/i
+            unless $text;
+
+        # If no todo text is found, reset $prev_pretext and increment $todo_index.
+        if (!$text) {
+            $prev_pretext = q{};
+            $todo_index++;
+            next;
+        }
+
+        # Create hashref for this todo if it does not already exist.
+        if (!$todos->[$todo_index]) {
+            push @$todos, { lines => [], line_num => $line_num };
+        }
+
+        # Add the token text if --include-token and first line.
+        $text = $token . $text
+            if $incl_token && !scalar(@{$todos->[$todo_index]->{lines}});
+
+        push @{$todos->[$todo_index]->{lines}}, $text;
     }
 
-    # Create hashref for this todo if it does not already exist.
-    if (!$todos->[$todo_index]) {
-        push @$todos, { lines => [], line_num => $line_num };
-    }
-
-    # Add the token text if --include-token and first line.
-    $text = $token . $text
-        if $incl_token && !scalar(@{$todos->[$todo_index]->{lines}});
-
-    push @{$todos->[$todo_index]->{lines}}, $text;
+    return $todos;
 }
 
-foreach my $todo (@$todos) {
-    my $line_no = $todo->{line_num};
-    foreach my $todo_line (@{$todo->{lines}}) {
-        my $line = "$format\n";
-        $line =~ s/{LINE_NUM}/$line_no/g;
-        $line =~ s/{LINE}/$todo_line/g;
+sub printTodos {
+    my $todos = shift;
 
-        print $line;
-        $line_no++;
-    }
+    foreach my $todo (@$todos) {
+        my $line_no = $todo->{line_num};
+        foreach my $todo_line (@{$todo->{lines}}) {
+            my $line = "$format\n";
+            $line =~ s/{LINE_NUM}/$line_no/g;
+            $line =~ s/{LINE}/$todo_line/g;
+
+            print $line;
+            $line_no++;
+        }
+    }   
 }
