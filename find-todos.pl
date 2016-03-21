@@ -18,11 +18,11 @@ GetOptions(
     'include-token' => \$incl_token,
 ) or die "Error in command line arguments\n";
 
-my $todos = getTodosFromFile($file);
-printTodos($todos);
+my $todos = getTodosFromFile($file, $token, $incl_token);
+printTodos($todos, $format);
 
 sub getTodosFromFile {
-    my $filename = shift;
+    my ($filename, $token_text, $include_token) = @_;
 
     my $todos = [];
     my $todo_index = 0;
@@ -38,7 +38,7 @@ sub getTodosFromFile {
         chomp $line;
 
         # TODO: If we find the token again, make it a new todo.
-        my ($pretext, $text) = $line =~ m/(^.*)$token(.*$)/i;
+        my ($pretext, $text) = $line =~ m/(^.*)$token_text(.*$)/i;
         $prev_pretext = $pretext
             if $pretext;
 
@@ -62,8 +62,8 @@ sub getTodosFromFile {
         }
 
         # Add the token text if --include-token and first line.
-        $text = $token . $text
-            if $incl_token && !scalar(@{$todos->[$todo_index]->{lines}});
+        $text = $token_text . $text
+            if $include_token && !scalar(@{$todos->[$todo_index]->{lines}});
 
         push @{$todos->[$todo_index]->{lines}}, $text;
     }
@@ -72,12 +72,12 @@ sub getTodosFromFile {
 }
 
 sub printTodos {
-    my $todos = shift;
+    my ($todos, $template) = @_;
 
     foreach my $todo (@$todos) {
         my $line_no = $todo->{line_num};
         foreach my $todo_line (@{$todo->{lines}}) {
-            my $line = "$format\n";
+            my $line = "$template\n";
             $line =~ s/{LINE_NUM}/$line_no/g;
             $line =~ s/{LINE}/$todo_line/g;
 
