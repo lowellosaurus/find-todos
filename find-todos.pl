@@ -8,14 +8,14 @@ my $token      = 'TODO: ';
 my $format     = '{LINE_NUM}. {LINE}';
 my $file       = '';    # default: false  
 my $incl_token = 0;     # default: false
-# TODO: Add unbreak-lines option.
-# my $rem_breaks = 0;     # default: false
+my $rem_breaks = 0;     # default: false
 
 GetOptions(
     'token=s'       => \$token,
     'format=s'      => \$format,
     'file=s'        => \$file,
     'include-token' => \$incl_token,
+    'remove-linebreaks' => \$rem_breaks,
 ) or die "Error in command line arguments\n";
 
 my $todos = getTodosFromFile($file, $token, $incl_token);
@@ -65,7 +65,12 @@ sub getTodosFromFile {
         $text = $token_text . $text
             if $include_token && !scalar(@{$todos->[$todo_index]->{lines}});
 
-        push @{$todos->[$todo_index]->{lines}}, $text;
+        if ($rem_breaks) {
+            $todos->[$todo_index]->{lines}[0] .= " $text";
+        }
+        else {
+            push @{$todos->[$todo_index]->{lines}}, $text;
+        }        
     }
 
     return $todos;
