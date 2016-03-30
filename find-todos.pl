@@ -18,11 +18,19 @@ GetOptions(
     'remove-linebreaks' => \$rem_breaks,
 ) or die "Error in command line arguments\n";
 
-my $todos = getTodosFromFile($file, $token, $incl_token);
-printTodos($todos, $format);
+my $handle;
+if ($file) {
+    open($handle, "<", $file) or die "Cannot open file '$file': $!";
+}
+else {
+    $handle = *STDIN;
+}
+# TODO: Script will hang if no $file option is provided and STDIN is empty.
+
+printTodos(getTodosFromFile($handle, $token, $incl_token), $format);
 
 sub getTodosFromFile {
-    my ($filename, $token_text, $include_token) = @_;
+    my ($handle, $token_text, $include_token) = @_;
 
     my $todos = [];
     my $todo_index = 0;
@@ -30,10 +38,7 @@ sub getTodosFromFile {
     my $prev_pretext;
     my $line_num = 0;
 
-    open(my $fh, "<", $filename)
-        or die "Cannot open file '$filename': $!";
-
-    while (my $line = <$fh>) {
+    while (my $line = <$handle>) {
         $line_num++;
         chomp $line;
 
