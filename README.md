@@ -68,7 +68,7 @@ Todo
 ----
 
 - Make script die if no $file option is provided and STDIN is empty (currently just hangs until it is killed). (28)
-- Make a new todo if todos are on not separated by non-commented lines (currently includes second todo as part of the previous todo). The script will count the following two lines as one todo. (45)
+- Make a new todo if todos are on not separated by non-commented lines (currently includes second todo as part of the previous todo). The script will count the following two lines as one todo if they are on consecutive lines. (45)
 
     `// TODO: Rename the arguments for clarity.`
 
