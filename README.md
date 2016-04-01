@@ -34,7 +34,7 @@ Will output:
     75. Remember! Return an error object instead of undefined on error.
     110. Remember! Improve user-facing message. Print "One result found" instead of "One result(s) found".
 
-**--format** changes the formatting of each line of output from the default "{LINE_NUM}. {LINE}" to whatever you specificy. All text within the string that follows **--format** will be preserved with the exception of {LINE_NUM} and {LINE} which will be replaced, respectively, by the line number and the text of the line (or several lines if --remove-linebreaks is set).
+**--format** changes the formatting of each line of output from the default "{LINE_NUM}. {LINE}" to whatever you specificy. All text within the string that follows --format will be preserved with the exception of {LINE_NUM} and {LINE} which will be replaced, respectively, by the line number and the text of the line (or several lines if --remove-linebreaks is set).
 
     $> perl find-todos.pl --file "my_script.js" --token "Remember! " --remove-linebreaks --include-token --format "- {LINE} ({LINE_NUM})"
 
